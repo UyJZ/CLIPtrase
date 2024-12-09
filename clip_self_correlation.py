@@ -84,7 +84,8 @@ def get_image_and_gt(dataset, image_size, image_path, gt_path, file_name):
     gt = gt_transform(image_size)(Image.open(gt_file))
     gt = np.array(gt)
     gt = gt.astype(np.int16) # 防止溢出
-    gt = torch.tensor(gt).to(device)
+    # gt = torch.tensor(gt).to(device) 这行代码有Bug
+    gt = torch.tensor(gt.astype(np.int64)).to(device)  # 转换为 PyTorch 支持的 int64 类型
     return img, gt
 
 def get_text_features(clip,text_labels):
@@ -226,9 +227,10 @@ def self_clip_test():
     clip_model, _ = clip_utils.load(clip_type, image_size=224) # origin transforms unused
     clip_model = clip_model.to(device)
     print('load clip success!')
-    datasets = ["VOC20","VOC21","COCO80_val","COCO171_val","PC59","PC60","PC459","ADE150","ADEfull"]
+    # datasets = ["VOC20","VOC21","COCO80_val","COCO171_val","PC59","PC60","PC459","ADE150","ADEfull"]
     # datasets = ["VOC20","ADE150","ADEfull","COCO171_val","PC59", "PC459"]
     # datasets = ["VOC21", "COCO80_val", "PC60"]
+    datasets = ["VOC20"]
     for d in datasets:
         self_clip(clip_model, d, image_size=224,eps=0.7,min=3)
         self_clip(clip_model, d, image_size=336,eps=1.1,min=7)
